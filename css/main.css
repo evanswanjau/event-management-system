@@ -15,12 +15,15 @@ body {
 .ui-form {
   text-align: center;
   font-family: nunito;
-  padding: 2%; }
+  padding: 2%;
+  font-size: 14px; }
   .ui-form h1 {
-    padding: 5%;
+    padding: 2%;
     text-transform: capitalize;
     color: #f14949; }
-  .ui-form input[type='text'] {
+  .ui-form textarea {
+    font-size: 14px; }
+  .ui-form input[type='text'], .ui-form textarea {
     padding: 1%;
     width: 25%;
     border: none;
@@ -36,7 +39,7 @@ body {
     box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.1);
     border-radius: 3px;
     color: #444; }
-  .ui-form input[type='text']:focus {
+  .ui-form input[type='text']:focus, .ui-form select:focus, .ui-form textarea:focus {
     box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.2); }
   .ui-form input[type='submit'] {
     border: 2px solid #f14949;
@@ -50,5 +53,16 @@ body {
   .ui-form input[type='submit']:hover {
     background-color: transparent;
     color: #f14949; }
+
+.error, .success {
+  background-color: #f14949;
+  border-radius: 3px;
+  width: 26%;
+  margin: 0.5% auto !important;
+  padding: .7%;
+  color: #fff; }
+
+.success {
+  background-color: #34ca66; }
 
 /*# sourceMappingURL=main.css.map */

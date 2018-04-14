@@ -1,3 +1,4 @@
+<?php require_once '../../engine/infused_cogs.php'; ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
@@ -20,12 +21,13 @@
     <div class="container-form">
       <form class="ui-form" action="" method="post">
         <h1>upload new event</h1>
+        <?php uploadEvent(); ?>
         <input type="text" name="name" placeholder="event name"><br><br>
-        <input type="text" name="description" placeholder="description"><br><br>
+        <textarea name="description" rows="4" cols="80" placeholder="Enter a small description"></textarea><br><br>
         <select class="" name="event">
-          <option value="Weddings">Weddings</option>
-          <option value="Sports">Sports</option>
-          <option value="Art">Art</option>
+          <option value="Weddings">weddings</option>
+          <option value="Sports">sports</option>
+          <option value="Art">art</option>
         </select><br><br>
         <input type="text" name="venue" placeholder="venue"><br><br>
         <input type="submit" name="post-event" value="post event">
