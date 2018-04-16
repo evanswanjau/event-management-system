@@ -30,6 +30,11 @@ function stringShuffle($divide = 4){
   return $code;
 }
 
+/*
+--------------------------------------------
+  events functionality
+--------------------------------------------
+*/
 # upload event function
 function uploadEvent(){
 
@@ -81,6 +86,31 @@ function uploadEvent(){
       }
     }
   }
+}
+
+
+# get events function
+function getEvents(){
+
+  global $conn;
+
+  $sql = "SELECT * FROM events";
+  $result = $conn->query($sql);
+
+  # get fields into variables
+  while($row = $result->fetch_assoc()){
+    $code = $row['code'];
+    $name = $row['name'];
+    $description = $row['description'];
+    $event = $row['event'];
+  }
+
+  echo "
+  <div class='event'>
+    <h3>$name</h3>
+    <p>$description</p>
+    <p>$event</p>
+  </div>";
 }
 
  ?>

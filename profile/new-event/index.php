@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="../../css/jquery-ui.min.css">
     <script src="../../js/jquery-ui.min.js"></script>
   </head>
-  <body>
+  <body style="background-color:#dfdfdf;">
     <div class="container-form">
       <form class="ui-form" action="" method="post">
         <h1>upload new event</h1>
