@@ -35,7 +35,7 @@ $text-color:#444;
     font-size:14px;
   }
 
-  input[type='text'], textarea, select, [type='date']{
+  input[type='text'], textarea, select, [type='date'], [type='password']{
     padding:1%;
     width:30%;
     border:none;
@@ -52,7 +52,7 @@ $text-color:#444;
   input[type='submit']{
     border:2px solid $theme-color;
     font-family:$font;
-    padding:1%;
+    padding:.7% 1%;
     background-color:$theme-color;
     cursor: pointer;
     border-radius:3px;

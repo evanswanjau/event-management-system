@@ -20,7 +20,7 @@
     color: #f14949; }
   .ui-form textarea {
     font-size: 14px; }
-  .ui-form input[type='text'], .ui-form textarea, .ui-form select, .ui-form [type='date'] {
+  .ui-form input[type='text'], .ui-form textarea, .ui-form select, .ui-form [type='date'], .ui-form [type='password'] {
     padding: 1%;
     width: 30%;
     border: none;
@@ -33,7 +33,7 @@
   .ui-form input[type='submit'] {
     border: 2px solid #f14949;
     font-family: nunito;
-    padding: 1%;
+    padding: .7% 1%;
     background-color: #f14949;
     cursor: pointer;
     border-radius: 3px;

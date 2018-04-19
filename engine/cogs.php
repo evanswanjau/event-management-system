@@ -200,4 +200,144 @@ function getEvents(){
   }
 }
 
+
+# function to login the user
+function loginUser(){
+  if (isset($_POST['login'])) {
+    global $conn;
+
+    $errors = array(); #initialize array to store our errors
+
+    #username
+    if($_POST['username'] != ''){
+      $username = clean_input($_POST['username']);
+    }else {
+      $errors[] = "<p class='error'>username is required</p>";
+    }
+
+    #password
+    if($_POST['password'] != ''){
+      $password = (clean_input($_POST['password']));
+    }else {
+      $errors[] = "<p class='error'>password is required</p>";
+    }
+
+    if($errors == []){
+      $query = "SELECT username, password FROM users WHERE username = '$username'";
+      $result = $conn->query($query);
+
+      if($result->num_rows == 1){
+        while($row = $result->fetch_assoc()) {
+              $username = $row['username'];
+              $hash = $row['password'];
+            }
+
+            if (password_verify($password, $hash)) {
+
+              $_SESSION['user'] = $username;
+
+              if ($username == 'admin') {
+                header('Location: ../admin');
+              }else {
+                header('Location: ../profile');
+              }
+
+            } else {
+              echo '<p class="error">Invalid login details</p>';
+            }
+      }else if($result->num_rows < 1){
+        echo '<p class="error">That username does not exist</p>';
+      }
+    }else{
+      foreach ($errors as $error) {
+        echo $error;
+      }
+    }
+  }
+}
+
+  # register user function
+  function registerUser(){
+
+    global $conn;
+
+    $current_date = getCurrentDate();
+
+    if (isset($_POST['register'])) {
+      $errors = array(); #initialize array to store our errors
+
+      # username
+      if($_POST['name'] != ''){
+        $name = clean_input($_POST['name']);
+      }else {
+        $errors[] = "<p class='error'>Full name is required</p>";
+      }
+
+      # username
+      if($_POST['username'] != ''){
+        $username = clean_input($_POST['username']);
+      }else {
+        $errors[] = "<p class='error'>username is required</p>";
+      }
+
+      #password
+      if($_POST['password'] != ''){
+        $password = clean_input($_POST['password']);
+
+        if (strlen($password) < 6) {
+          $errors[] = "<p class='error'>password cannot be less than 6 characters</p>";
+        }else {
+
+          # confirm password
+          if($_POST['password2'] != ''){
+            $password2 = clean_input($_POST['password2']);
+          }else {
+            $errors[] = "<p class='error'>Please confirm your password</p>";
+          }
+
+          if ($password == $password2) {
+            $password = password_hash($password, PASSWORD_BCRYPT);
+          }else {
+            $errors[] = "<p class='error'>Passwords are not similar</p>";
+          }
+
+        }
+      }else {
+        $errors[] = "<p class='error'>password is required</p>";
+      }
+
+
+      # when no errors exist
+      if($errors == []){
+
+        $sql = "SELECT username FROM users where username = '$username'";
+        $result = $conn->query($sql);
+
+        if ($result->num_rows > 0) {
+          echo "<p class='error'>That account already exists</p>";
+        }else {
+
+          #Inserting the user's data into our database
+          $sql = "INSERT INTO users ( name, username, password, dor)
+          VALUES ('$name', '$username', '$password', '$current_date')";
+
+          if ($conn->query($sql) === TRUE) {
+
+            $_SESSION['user'] = $username;
+            echo "<p class='success'>Registration successful</p>";
+            header('refresh:2; url=../');
+
+          }else {
+            echo "Error: " . $sql . "<br>" . $conn->error;
+          }
+        }
+
+      }else {
+        foreach ($errors as $error) {
+          echo $error;
+        }
+      }
+    }
+  }
+
  ?>
