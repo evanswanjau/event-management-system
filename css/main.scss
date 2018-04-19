@@ -35,9 +35,9 @@ $text-color:#444;
     font-size:14px;
   }
 
-  input[type='text'], textarea, select{
+  input[type='text'], textarea, select, [type='date']{
     padding:1%;
-    width:25%;
+    width:30%;
     border:none;
     font-family:$font;
     box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.1);
@@ -69,7 +69,7 @@ $text-color:#444;
 .error{
   background-color:$theme-color;
   border-radius:3px;
-  width:26%;
+  width:30%;
   margin:.5% auto!important;
   padding:.7%;
   color:#fff;
@@ -81,13 +81,15 @@ $text-color:#444;
 }
 
 .event-container{
-  padding:2%;
   font-family:$font;
+  height:100vh;
+  overflow-y: scroll;
 
   .event{
     background-color:#fff;
     box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.1);
     padding:1%;
+    margin:2% 0%;
     border-radius:3px;
 
     h3{
@@ -98,7 +100,49 @@ $text-color:#444;
     }
 
     p{
-      padding:1% 0%;
+      width:80%;
+      color:$text-color;
     }
+
+    .fee{
+      color:#fff;
+      background-color:#34ca66;
+      padding:.3%;
+      border-radius:3px;
+    }
+
+    .kando{
+      background-color:$theme-color;
+      border-radius:3px;
+      color:#fff;
+      font-size:.7em;
+      padding:.3%;
+      position: absolute;
+      right:2%;
+    }
+  }
+}
+
+.side-menu{
+  padding:.7%;
+
+  .menu{
+    background-color:#fff;
+    box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.1);
+    padding:13% 1%;
+    margin:2% 2%;
+    border-radius:3px;
+    height:200px;
+    font-family:$font;
+    text-align: center;
+    width:200px;
+    cursor: pointer;
+    -webkit-transition: background .5s;
+    color:$text-color;
+  }
+
+  .menu:hover{
+    background-color:$theme-color;
+    color:#fff;
   }
 }

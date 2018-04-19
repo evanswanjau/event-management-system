@@ -20,9 +20,9 @@
     color: #f14949; }
   .ui-form textarea {
     font-size: 14px; }
-  .ui-form input[type='text'], .ui-form textarea, .ui-form select {
+  .ui-form input[type='text'], .ui-form textarea, .ui-form select, .ui-form [type='date'] {
     padding: 1%;
-    width: 25%;
+    width: 30%;
     border: none;
     font-family: nunito;
     box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.1);
@@ -46,7 +46,7 @@
 .error, .success {
   background-color: #f14949;
   border-radius: 3px;
-  width: 26%;
+  width: 30%;
   margin: 0.5% auto !important;
   padding: .7%;
   color: #fff; }
@@ -55,12 +55,14 @@
   background-color: #34ca66; }
 
 .event-container {
-  padding: 2%;
-  font-family: nunito; }
+  font-family: nunito;
+  height: 100vh;
+  overflow-y: scroll; }
   .event-container .event {
     background-color: #fff;
     box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.1);
     padding: 1%;
+    margin: 2% 0%;
     border-radius: 3px; }
     .event-container .event h3 {
       color: #f14949;
@@ -68,6 +70,39 @@
       border-bottom: 1px solid #f14949;
       width: 50%; }
     .event-container .event p {
-      padding: 1% 0%; }
+      width: 80%;
+      color: #444; }
+    .event-container .event .fee {
+      color: #fff;
+      background-color: #34ca66;
+      padding: .3%;
+      border-radius: 3px; }
+    .event-container .event .kando {
+      background-color: #f14949;
+      border-radius: 3px;
+      color: #fff;
+      font-size: .7em;
+      padding: .3%;
+      position: absolute;
+      right: 2%; }
+
+.side-menu {
+  padding: .7%; }
+  .side-menu .menu {
+    background-color: #fff;
+    box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.1);
+    padding: 13% 1%;
+    margin: 2% 2%;
+    border-radius: 3px;
+    height: 200px;
+    font-family: nunito;
+    text-align: center;
+    width: 200px;
+    cursor: pointer;
+    -webkit-transition: background .5s;
+    color: #444; }
+  .side-menu .menu:hover {
+    background-color: #f14949;
+    color: #fff; }
 
 /*# sourceMappingURL=main.css.map */

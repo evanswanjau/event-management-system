@@ -25,10 +25,14 @@
         <input type="text" name="name" placeholder="event name"><br><br>
         <textarea name="description" rows="4" cols="80" placeholder="Enter a small description"></textarea><br><br>
         <select class="" name="event">
-          <option value="Weddings">weddings</option>
-          <option value="Sports">sports</option>
-          <option value="Art">art</option>
+          <option value="artsnculture">Arts and Culture</option>
+          <option value="exhibition">Exhibition</option>
+          <option value="festivals">Festivals</option>
+          <option value="fundraising">Fundraising</option>
+          <option value="sporting">sporting</option>
         </select><br><br>
+        <input type="text" name="entry-fee" placeholder="entry-fee"><br><br>
+        <input type="date" name="event-date" value=""><br><br>
         <input type="text" name="venue" placeholder="venue"><br><br>
         <input type="submit" name="post-event" value="post event">
       </form>

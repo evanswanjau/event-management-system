@@ -20,7 +20,38 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-sm-4 side-menu">
-          menu
+          <div class="row">
+            <a href="?link=">
+              <div class="col-sm-5 menu">
+                <h3>All Events</h3>
+              </div>
+            </a>
+            <a href="?link=artsnculture">
+              <div class="col-sm-5 menu">
+                <h3>Arts and Culture</h3>
+              </div>
+            </a>
+            <a href="?link=exhibition">
+              <div class="col-sm-5 menu">
+                <h3>Exhibition</h3>
+              </div>
+            </a>
+            <a href="?link=festivals">
+              <div class="col-sm-5 menu">
+                <h3>Festivals</h3>
+              </div>
+            </a>
+            <a href="?link=fundraising">
+              <div class="col-sm-5 menu">
+                <h3>Fundraising</h3>
+              </div>
+            </a>
+            <a href="?link=sports">
+              <div class="col-sm-5 menu">
+                <h3>Sports</h3>
+              </div>
+            </a>
+          </div>
         </div>
         <div class="col-sm-8 event-container">
           <?php getEvents(); ?>
