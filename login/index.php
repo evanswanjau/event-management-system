@@ -24,7 +24,8 @@
         <?php loginUser(); ?>
         <input type="text" name="username" placeholder="username"><br><br>
         <input type="password" name="password" placeholder="password"><br><br>
-        <input type="submit" name="login" value="login">
+        <input type="submit" name="login" value="login"><br><br>
+        Don't have an account?<a href="../register"> Register</a>
       </form>
     </div>
   </body>

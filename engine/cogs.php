@@ -80,7 +80,7 @@ function uploadEvent(){
   global $conn;
 
   $date = getCurrentDate();
-  $username = 'evanswanjau';
+  $username = $_SESSION['user'];
 
   if (isset($_POST['post-event'])) {
     $errors = array();
@@ -141,6 +141,79 @@ function uploadEvent(){
   }
 }
 
+# edit event
+function editEvent($code){
+
+  global $conn;
+
+  if (isset($_POST['edit-event'])) {
+    $errors = array();
+
+    # confirm name is not empty
+    if ($_POST['name'] == '') {
+      $errors[] = "<p class='error'>You haven't entered the event name</p>";
+    }else {
+      $name = clean_input($_POST['name']);
+    }
+
+    # confirm description is not empty
+    if ($_POST['description'] == '') {
+      $errors[] = "<p class='error'>You haven't entered a description</p>";
+    }else {
+      $description = clean_input($_POST['description']);
+    }
+
+    $event = $_POST['event'];
+
+    # confirm message is not empty
+    if ($_POST['event-date'] == '') {
+      $errors[] = "<p class='error'>You haven't entered the date</p>";
+    }else {
+      $event_date = clean_input($_POST['event-date']);
+    }
+
+    # confirm message is not empty
+    if ($_POST['entry-fee'] == '') {
+      $entry_fee = 'Free Entry';
+    }else {
+      $entry_fee = clean_input($_POST['entry-fee']);
+    }
+
+    # confirm message is not empty
+    if ($_POST['venue'] == '') {
+      $errors[] = "<p class='error'>You haven't entered a venue</p>";
+    }else {
+      $venue= clean_input($_POST['venue']);
+    }
+
+    if ($errors == []) {
+      $sql = "UPDATE events SET `name` = '$name', `description` = '$description',  `event`='$event', `eventdate`='$event_date', `entryfee` = '$entry_fee', `venue` = '$venue' WHERE code = '$code'";
+
+      if ($conn->query($sql) === TRUE){
+        echo "<p class='success'>Event edited successful</p>";
+        header('refresh:2; url=../');
+      }else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+      }
+    }else {
+      foreach ($errors as $error) {
+        echo $error;
+      }
+    }
+  }
+}
+
+
+# event upload and edit button
+function echoButton(){
+  if (isset($_GET['editevent'])) {
+    $value = '<input type="submit" name="edit-event" value="edit event">';
+  }else {
+    $value = '<input type="submit" name="post-event" value="post event">';
+  }
+
+  return $value;
+}
 
 # get events function
 function getEvents(){
@@ -150,7 +223,7 @@ function getEvents(){
   if (isset($_GET['link']) && $_GET['link'] != '') {
     $link = strtolower($_GET['link']);
 
-    $sql = "SELECT * FROM events WHERE event = '$link' ORDER BY timestamp DESC";
+    $sql = "SELECT * FROM events WHERE event = '$link' ORDER BY eventdate DESC";
     $result = $conn->query($sql);
 
     # get fields into variables
@@ -170,11 +243,12 @@ function getEvents(){
         <p style='padding:1% 0%'>$description</p>
         <p><b>Entry Fee: </b><span class='fee'>Ksh $entry_fee</span></p>
         <p><b>Venue: </b>$venue</p>
-        <p><b>Date: </b>$event_date  <span class='kando' style='background-color:#34ca66;'>".timeSpan($event_date)."</span></p>
+        <p><b>Date: </b>$event_date</p>
+        <br><a href='profile/ticket?ticket_number=$code'>get ticket</a>  <span class='kando' style='background-color:#34ca66;'>".timeSpan($event_date)."</span><br><br>
       </div>";
     }
   }else {
-    $sql = "SELECT * FROM events ORDER BY timestamp DESC";
+    $sql = "SELECT * FROM events ORDER BY eventdate ASC";
     $result = $conn->query($sql);
 
     # get fields into variables
@@ -194,13 +268,18 @@ function getEvents(){
         <p style='padding:1% 0%'>$description</p>
         <p><b>Entry Fee: </b><span class='fee'>Ksh $entry_fee</span></p>
         <p><b>Venue: </b>$venue</p>
-        <p><b>Date: </b>$event_date  <span class='kando' style='background-color:#34ca66;'>".timeSpan($event_date)."</span></p>
+        <p><b>Date: </b>$event_date</p>
+        <br><a href='profile/ticket?ticket_number=$code'>get ticket</a>  <span class='kando' style='background-color:#34ca66;'>".timeSpan($event_date)."</span><br><br>
       </div>";
     }
   }
 }
 
-
+/*
+--------------------------------------------
+login and registration
+--------------------------------------------
+*/
 # function to login the user
 function loginUser(){
   if (isset($_POST['login'])) {
@@ -339,5 +418,228 @@ function loginUser(){
       }
     }
   }
+
+/*
+--------------------------------------------
+generate ticket
+--------------------------------------------
+*/
+# function to get ticket
+function getTicket($code){
+  global $conn;
+
+  $username = $_SESSION['user'];
+
+  $serial_code = strtoupper(stringShuffle() . $username);
+
+  $sql = "SELECT * FROM events WHERE code = '$code'";
+  $result = $conn->query($sql);
+
+  # get fields into variables
+  while($row = $result->fetch_assoc()){
+    $name = $row['name'];
+    $description = $row['description'];
+    $event = $row['event'];
+    $event_date = $row['eventdate'];
+    $entry_fee = $row['entryfee'];
+    $venue = $row['venue'];
+
+
+    echo "
+    <div class='ticket'>
+      <p>".generateTicket($code, $serial_code, $username)."</p>
+      <h3>".strtoupper($name)."</h3><br>
+      <p><b>Serial code: </b>#" . $serial_code ."</p>
+      <p><b>Entry Fee: </b><span class='fee'>Ksh $entry_fee</span></p>
+      <p><b>Venue: </b>$venue</p>
+      <p><b>Date: </b>$event_date  <span style='background-color:#34ca66;color:#fff; border-radius:3px; paddding:3%!important;'>".timeSpan($event_date)."</span></p>
+      <form class='ui-form' action='' method='post'>
+        <input type='submit' name='confirm-ticket' value='generate ticket'>
+      </form>
+    </div>";
+  }
+}
+
+function myTickets($code, $username, $serial_code){
+  global $conn;
+
+  $sql = "SELECT * FROM events WHERE code = '$code'";
+  $result = $conn->query($sql);
+
+  # get fields into variables
+    while($row = $result->fetch_assoc()){
+      $name = $row['name'];
+      $description = $row['description'];
+      $event = $row['event'];
+      $event_date = $row['eventdate'];
+      $entry_fee = $row['entryfee'];
+      $venue = $row['venue'];
+
+
+      echo "
+      <div class='ticket'>
+        <h3>".strtoupper($name)."</h3><br>
+        <p><b>Serial code: </b>#" . $serial_code ."</p>
+        <p><b>Entry Fee: </b><span class='fee'>Ksh $entry_fee</span></p>
+        <p><b>Venue: </b>$venue</p>
+        <p><b>Date: </b>$event_date  <span style='background-color:#34ca66;color:#fff; border-radius:3px; paddding:3!important%;'>".timeSpan($event_date)."</span></p>
+        <br><a href='?deleteticket=$serial_code'>cancel ticket</a><br><br>
+      </div>";
+    }
+  }
+
+# function to get all tickets
+function getTickets(){
+
+  global $conn;
+  $username = $_SESSION['user'];
+
+  $sql = "SELECT * FROM tickets WHERE username = '$username' ORDER BY id DESC";
+  $result = $conn->query($sql);
+
+  # get fields into variables
+  if($result->num_rows > 0){
+    while($row = $result->fetch_assoc()){
+      $code = $row['code'];
+      $serial_code = $row['serial_code'];
+      $username = $row['username'];
+
+      myTickets($code, $username, $serial_code);
+    }
+  }else if($result->num_rows < 1){
+    echo "
+    <div class='empty-data'>
+      <h3>You do not have any new tickets</h3><br><br>
+      <a href='../../'>get ticket</a>
+    </div>";
+  }
+
+}
+
+# add ticket to db
+function generateTicket($code, $serial_code, $username){
+
+  global $conn;
+
+  if (isset($_POST['confirm-ticket'])) {
+
+    $current_date = getCurrentDate();
+
+    #Inserting the user's data into our database
+    $sql = "INSERT INTO tickets (code, serial_code, username, timestamp)
+    VALUES ('$code', '$serial_code', '$username', '$current_date')";
+
+    if ($conn->query($sql) === TRUE) {
+      echo "<p class='success'>Ticket generation successful</p>";
+      header('refresh:2; url=../ticket');
+    }else {
+      echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+  }
+}
+
+# function to delete ticket
+function deleteTicket($ticket){
+  global $conn;
+
+  $sql = "DELETE FROM tickets WHERE serial_code = '$ticket'";
+  if ($conn->query($sql) === TRUE) {
+
+    echo "<p class='success'>Ticket deletion successful</p>";
+    header('refresh:2; url=../ticket');
+
+  }else {
+    echo "Error: " . $sql . "<br>" . $conn->error;
+  }
+}
+
+/*
+--------------------------------------------
+my events
+--------------------------------------------
+*/
+# function to get user's events
+function getMyEvents(){
+  global $conn;
+
+  $username = $_SESSION['user'];
+
+  $sql = "SELECT * FROM events WHERE postedby = '$username'";
+  $result = $conn->query($sql);
+
+  if($result->num_rows > 0){
+    # get fields into variables
+    while($row = $result->fetch_assoc()){
+      $code = $row['code'];
+      $name = $row['name'];
+      $description = $row['description'];
+      $event = $row['event'];
+      $event_date = $row['eventdate'];
+      $entry_fee = $row['entryfee'];
+      $venue = $row['venue'];
+
+
+      echo "
+      <div class='ticket'>
+        <h3>".strtoupper($name)."</h3><br>
+        <p><b>Entry Fee: </b><span class='fee'>Ksh $entry_fee</span></p>
+        <p><b>Venue: </b>$venue</p>
+        <p><b>Date: </b>$event_date  <span style='background-color:#34ca66;color:#fff; border-radius:3px; paddding:1%;'>".timeSpan($event_date)."</span></p>
+        <br><a href='?deleteevent=$code'>delete event</a><a style='background-color:#34ca66;border:2px solid #34ca66;' href='new-event/?editevent=$code'>edit event</a><br><br>
+      </div>";
+    }
+  }else if($result->num_rows < 1){
+    echo "
+    <div class='empty-data'>
+      <h3>You do not uploaded any events</h3><br><br>
+      <a href='new-event'>add new event</a>
+    </div>";
+  }
+}
+
+# function to delete event
+function deleteEvent($code){
+
+  global $conn;
+
+  $sql = "DELETE FROM events WHERE code = '$code'";
+
+  if ($conn->query($sql) === TRUE) {
+    $sql = "DELETE FROM tickets WHERE code = '$code'";
+
+    if ($conn->query($sql) === TRUE) {
+
+      echo "<p class='success'>Event deletion successful</p>";
+      header('refresh:2; url=../profile');
+
+    }else {
+      echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+  }else {
+    echo "Error: " . $sql . "<br>" . $conn->error;
+  }
+}
+
+
+/*
+--------------------------------------------
+profile security and logout function
+--------------------------------------------
+*/
+
+# user security function
+function userSecurity($path=''){
+  if (!isset($_SESSION['user'])) {
+    header('location: '.$path.'login');
+  }
+}
+
+# logout function
+function endSession($path=''){
+  if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: ".$path."");
+  }
+}
 
  ?>

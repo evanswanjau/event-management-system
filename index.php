@@ -19,7 +19,7 @@
   <body style="background-color:#dfdfdf;">
     <div class="container-fluid">
       <div class="row">
-        <div class="col-sm-4 side-menu">
+        <div class="col-sm-4 home-menu">
           <div class="row">
             <a href="?link=">
               <div class="col-sm-5 menu">

@@ -26,7 +26,8 @@
         <input type="text" name="username" placeholder="username"><br><br>
         <input type="password" name="password" placeholder="password"><br><br>
         <input type="password" name="password2" placeholder="confirm password"><br><br>
-        <input type="submit" name="register" value="register">
+        <input type="submit" name="register" value="register"><br><br>
+        Already have an account?<a href="../login"> login</a>
       </form>
     </div>
   </body>
