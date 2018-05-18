@@ -16,45 +16,44 @@
     <link rel="stylesheet" href="css/jquery-ui.min.css">
     <script src="js/jquery-ui.min.js"></script>
   </head>
-  <body style="background-color:#dfdfdf;">
-    <div class="container-fluid">
+  <body>
+
+    <div class="top-menu">
+      <ul>
+        <a href=""><li>home</li></a>
+        <a href="about"><li>about</li></a>
+        <a href="services"><li>services</li></a>
+        <a href="index.php"><li class="dropdown">events
+          <ul>
+            <a href="?link=artsnculture"><li>arts and culture</li></a>
+            <a href="?link=exhibition"><li>exhibition</li></a>
+            <a href="?link=festivals"><li>festivals</li></a>
+            <a href="?link=fundraising"><li>fundraising</li></a>
+            <a href="?link=sporting"><li>sports</li></a>
+          </ul>
+        </li></a>
+        <a href="contacts"><li>contact us</li></a>
+        <?php
+          if (isset($_SESSION['user'])) {
+            echo '<a href="profile"><li>profile</li></a>';
+          }
+         ?>
+      </ul>
+    </div>
+
+    <div class="container-fluid home-style">
       <div class="row">
-        <div class="col-sm-4 home-menu">
-          <div class="row">
-            <a href="?link=">
-              <div class="col-sm-5 menu">
-                <h3>All Events</h3>
-              </div>
-            </a>
-            <a href="?link=artsnculture">
-              <div class="col-sm-5 menu">
-                <h3>Arts and Culture</h3>
-              </div>
-            </a>
-            <a href="?link=exhibition">
-              <div class="col-sm-5 menu">
-                <h3>Exhibition</h3>
-              </div>
-            </a>
-            <a href="?link=festivals">
-              <div class="col-sm-5 menu">
-                <h3>Festivals</h3>
-              </div>
-            </a>
-            <a href="?link=fundraising">
-              <div class="col-sm-5 menu">
-                <h3>Fundraising</h3>
-              </div>
-            </a>
-            <a href="?link=sports">
-              <div class="col-sm-5 menu">
-                <h3>Sports</h3>
-              </div>
-            </a>
-          </div>
+
+        <div class="col-sm-7 home-menu">
+          <h1><span>EVENT PLANNING AND MANAGEMENT SYSTEM</span></h1>
+          <br>
+          <a href="login">login</a>
+          <a href="register">register</a>
         </div>
-        <div class="col-sm-8 event-container">
+        <div class="col-sm-5 event-container">
+          <h1>EVENTS</h1>
           <?php getEvents(); ?>
+          <br><br><br><br>
         </div>
       </div>
     </div>

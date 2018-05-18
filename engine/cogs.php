@@ -30,6 +30,17 @@ function stringShuffle($divide = 4){
   return $code;
 }
 
+#getting count
+function getAttendingCount($code){
+  global $conn;
+
+  $query = "SELECT * FROM tickets WHERE code = '$code'";
+  $row_count = mysqli_query($conn, $query);
+  $row_count = mysqli_num_rows($row_count);
+
+  return $row_count;
+}
+
 #function that adds s to the end.
 function addS($time){
   if ($time != 1) {
@@ -244,6 +255,7 @@ function getEvents(){
         <p><b>Entry Fee: </b><span class='fee'>Ksh $entry_fee</span></p>
         <p><b>Venue: </b>$venue</p>
         <p><b>Date: </b>$event_date</p>
+        <p><b>Attending: </b>".getAttendingCount($code)."</p>
         <br><a href='profile/ticket?ticket_number=$code'>get ticket</a>  <span class='kando' style='background-color:#34ca66;'>".timeSpan($event_date)."</span><br><br>
       </div>";
     }
@@ -269,6 +281,7 @@ function getEvents(){
         <p><b>Entry Fee: </b><span class='fee'>Ksh $entry_fee</span></p>
         <p><b>Venue: </b>$venue</p>
         <p><b>Date: </b>$event_date</p>
+        <p><b>Attending:</b>".getAttendingCount($code)."</p>
         <br><a href='profile/ticket?ticket_number=$code'>get ticket</a>  <span class='kando' style='background-color:#34ca66;'>".timeSpan($event_date)."</span><br><br>
       </div>";
     }
@@ -453,6 +466,7 @@ function getTicket($code){
       <p><b>Entry Fee: </b><span class='fee'>Ksh $entry_fee</span></p>
       <p><b>Venue: </b>$venue</p>
       <p><b>Date: </b>$event_date  <span style='background-color:#34ca66;color:#fff; border-radius:3px; paddding:3%!important;'>".timeSpan($event_date)."</span></p>
+      <p><b>Attending:</b>".getAttendingCount($code)."</p>
       <form class='ui-form' action='' method='post'>
         <input type='submit' name='confirm-ticket' value='generate ticket'>
       </form>
@@ -483,6 +497,7 @@ function myTickets($code, $username, $serial_code){
         <p><b>Entry Fee: </b><span class='fee'>Ksh $entry_fee</span></p>
         <p><b>Venue: </b>$venue</p>
         <p><b>Date: </b>$event_date  <span style='background-color:#34ca66;color:#fff; border-radius:3px; paddding:3!important%;'>".timeSpan($event_date)."</span></p>
+        <p><b>Attending:</b>".getAttendingCount($code)."</p>
         <br><a href='?deleteticket=$serial_code'>cancel ticket</a><br><br>
       </div>";
     }
@@ -585,6 +600,7 @@ function getMyEvents(){
         <p><b>Entry Fee: </b><span class='fee'>Ksh $entry_fee</span></p>
         <p><b>Venue: </b>$venue</p>
         <p><b>Date: </b>$event_date  <span style='background-color:#34ca66;color:#fff; border-radius:3px; paddding:1%;'>".timeSpan($event_date)."</span></p>
+        <p><b>Attending:</b>".getAttendingCount($code)."</p>
         <br><a href='?deleteevent=$code'>delete event</a><a style='background-color:#34ca66;border:2px solid #34ca66;' href='new-event/?editevent=$code'>edit event</a><br><br>
       </div>";
     }
@@ -620,6 +636,43 @@ function deleteEvent($code){
   }
 }
 
+# function to get all Events
+function getAllEvents(){
+  global $conn;
+
+  $sql = "SELECT * FROM events";
+  $result = $conn->query($sql);
+
+  if($result->num_rows > 0){
+    # get fields into variables
+    while($row = $result->fetch_assoc()){
+      $code = $row['code'];
+      $name = $row['name'];
+      $description = $row['description'];
+      $event = $row['event'];
+      $event_date = $row['eventdate'];
+      $entry_fee = $row['entryfee'];
+      $venue = $row['venue'];
+
+
+      echo "
+      <div class='ticket'>
+        <h3>".strtoupper($name)."</h3><br>
+        <p><b>Entry Fee: </b><span class='fee'>Ksh $entry_fee</span></p>
+        <p><b>Venue: </b>$venue</p>
+        <p><b>Date: </b>$event_date  <span style='background-color:#34ca66;color:#fff; border-radius:3px; paddding:1%;'>".timeSpan($event_date)."</span></p>
+        <p><b>Attending:</b>".getAttendingCount($code)."</p>
+      </div>";
+    }
+  }else if($result->num_rows < 1){
+    echo "
+    <div class='empty-data'>
+      <h3>You do not uploaded any events</h3><br><br>
+      <a href='new-event'>add new event</a>
+    </div>";
+  }
+}
+
 
 /*
 --------------------------------------------
@@ -631,6 +684,17 @@ profile security and logout function
 function userSecurity($path=''){
   if (!isset($_SESSION['user'])) {
     header('location: '.$path.'login');
+  }else if($_SESSION['user'] == 'admin'){
+    header('location: '.$path.'admin');
+  }
+}
+
+# admin security
+function adminSecurity(){
+  if (!isset($_SESSION['user'])) {
+    header('location: ../login');
+  }else if($_SESSION['user'] != 'admin'){
+    header('location: ../profile');
   }
 }
 
@@ -642,4 +706,126 @@ function endSession($path=''){
   }
 }
 
+/*
+--------------------------------------------
+view messages
+--------------------------------------------
+*/
+// GET MESSAGES
+function getMessages(){
+
+  global $conn;
+
+  $sql = "SELECT * FROM messages ORDER BY date DESC";
+  $result = $conn->query($sql);
+
+  if($result->num_rows > 0){
+    # get fields into variables
+    while($row = $result->fetch_assoc()){
+      $id = $row['message_id'];
+      $name = $row['name'];
+      $email = $row['email'];
+      $phone = $row['phone'];
+      $message = $row['message'];
+      $date = $row['date'];
+
+      echo "
+      <div class='message'>
+        <p style='text-transform:capitalize;'><b>Message From:</b> $name</p>
+        <p>$message</p>
+        <p><b>Phone: </b>$phone</p>
+        <p><b>Date posted: </b>$date</p></br>
+        <a href='issue-order/?name=$name&phone=$phone'>issue order</a>
+      </div>";
+    }
+  }else if($result->num_rows < 1){
+    echo "
+    <div class='empty-data'>
+      <h3>You do not have any ne messages</h3><br><br>
+    </div>";
+  }
+}
+
+// INSERT NEW MESSAGE
+function newMessage(){
+  global $conn;
+
+  $errors = array();
+
+  if (isset($_POST['send-message'])) {
+
+    if ($_POST['name'] != '') {
+      $name = $_POST['name'];
+    }else {
+      $errors[] = "<p class='error'>Name cannot be empty</p>";
+    }
+
+    if ($_POST['email'] == '') {
+      $errors[] = "<p class='error'>Email cannot be empty</p>";
+    }else {
+      $email = $_POST['email'];
+    }
+
+    if ($_POST['phone'] == '') {
+      $errors[] = "<p class='error'>Phone nunmber cannot be empty</p>";
+    }else {
+      $phone = $_POST['phone'];
+    }
+
+    if ($_POST['message'] == '') {
+      $errors[] = "<p class='error'>message cannot be empty</p>";
+    }else {
+      $message = $_POST['message'];
+    }
+
+    if ($errors == []) {
+      #Inserting the user's data into our database
+      $sql = "INSERT INTO messages (name, email, phone, message)
+      VALUES ('$name', '$email', '$phone', '$message')";
+
+      if ($conn->query($sql) === TRUE) {
+        echo "<p class='success'>Message sent successfully</p>";
+        header('refresh:2; url=../contacts');
+      }else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+      }
+    }else {
+      foreach ($errors as $error) {
+        echo $error;
+      }
+    }
+  }
+}
+
+/*
+--------------------------------------------
+INVENTORY FUNCTIONS
+--------------------------------------------
+*/
+function getInventory(){
+
+  global $conn;
+  $count = 0;
+
+  $sql = "SELECT * FROM inventory ORDER BY item ASC";
+  $result = $conn->query($sql);
+
+  # get fields into variables
+  while($row = $result->fetch_assoc()){
+    $count += 1;
+    $id = $row['item_id'];
+    $item = $row['item'];
+    $count = $row['count'];
+    $price = $row['single_item_price'];
+
+    echo "
+      <tr>
+        <td>$count</td>
+        <td>$item</td>
+        <td>$count</td>
+        <td>$price</td>
+      </tr>
+    ";
+  }
+}
  ?>
