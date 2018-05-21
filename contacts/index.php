@@ -36,7 +36,7 @@
         <a href="../contacts"><li>contact us</li></a>
         <?php
           if (isset($_SESSION['user'])) {
-            echo '<a href="profile"><li>profile</li></a>';
+            echo '<a href="../profile"><li>profile</li></a>';
           }
          ?>
       </ul>
@@ -45,7 +45,7 @@
     <div class="container-fluid container-form">
       <div class="row">
         <div class="col-sm-12 contacts">
-          <h1>Leave us a message</h1>
+          <h1>Book an event</h1>
           <ul>
             <li><b>email:</b> book@eventmanagement.com</li>
             <li><b>call:</b> 0700112233</li>

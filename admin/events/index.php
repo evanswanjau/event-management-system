@@ -23,14 +23,16 @@
         <div class="col-sm-3 side-menu">
           <ul>
             <a href="../../"><li>home</li></a>
-            <a href=""><li class="current">view messages</li></a>
+            <a href="../"><li>messages</li></a>
+            <a href="../orders"><li>orders</li></a>
             <a href="../inventory"><li>inventory</li></a>
-            <a href="../"><li>events</li></a>
+            <a href="../events"><li class="current">events</li></a>
             <a href="?logout"><li>logout</li></a>
           </ul>
         </div>
-        <div class="col-sm-9 other-side">
-          <?php getMessages(); ?>
+        <div class="col-sm-9 other-side container-form">
+          <h3>Events</h3>
+          <?php getAllEvents(); ?>
         </div>
       </div>
     </div>

@@ -16,6 +16,11 @@
     <script type="text/javascript" src="../js/script.js"></script>
     <link rel="stylesheet" href="../css/jquery-ui.min.css">
     <script src="../js/jquery-ui.min.js"></script>
+    <style media="screen">
+      .container-form{
+        padding-top:5%!important;
+      }
+    </style>
   </head>
   <body>
 
@@ -36,7 +41,7 @@
         <a href="../contacts"><li>contact us</li></a>
         <?php
           if (isset($_SESSION['user'])) {
-            echo '<a href="profile"><li>profile</li></a>';
+            echo '<a href="../profile"><li>profile</li></a>';
           }
          ?>
       </ul>

@@ -607,7 +607,7 @@ function getMyEvents(){
   }else if($result->num_rows < 1){
     echo "
     <div class='empty-data'>
-      <h3>You do not uploaded any events</h3><br><br>
+      <h3>You have not uploaded any events</h3><br><br>
       <a href='new-event'>add new event</a>
     </div>";
   }
@@ -667,7 +667,7 @@ function getAllEvents(){
   }else if($result->num_rows < 1){
     echo "
     <div class='empty-data'>
-      <h3>You do not uploaded any events</h3><br><br>
+      <h3>You have not uploaded any events</h3><br><br>
       <a href='new-event'>add new event</a>
     </div>";
   }
@@ -690,11 +690,11 @@ function userSecurity($path=''){
 }
 
 # admin security
-function adminSecurity(){
+function adminSecurity($path=''){
   if (!isset($_SESSION['user'])) {
-    header('location: ../login');
+    header('location: '.$path.'login');
   }else if($_SESSION['user'] != 'admin'){
-    header('location: ../profile');
+    header('location: '.$path.'profile');
   }
 }
 
@@ -727,7 +727,7 @@ function getMessages(){
       $email = $row['email'];
       $phone = $row['phone'];
       $message = $row['message'];
-      $date = $row['date'];
+      $date = date_format(new dateTime($row['date']), "jS M Y H:i:s");
 
       echo "
       <div class='message'>
@@ -741,7 +741,7 @@ function getMessages(){
   }else if($result->num_rows < 1){
     echo "
     <div class='empty-data'>
-      <h3>You do not have any ne messages</h3><br><br>
+      <h3>You do not have any new messages</h3><br><br>
     </div>";
   }
 }
@@ -805,14 +805,14 @@ INVENTORY FUNCTIONS
 function getInventory(){
 
   global $conn;
-  $count = 0;
+  $c = 0;
 
   $sql = "SELECT * FROM inventory ORDER BY item ASC";
   $result = $conn->query($sql);
 
   # get fields into variables
   while($row = $result->fetch_assoc()){
-    $count += 1;
+    $c += 1;
     $id = $row['item_id'];
     $item = $row['item'];
     $count = $row['count'];
@@ -820,12 +820,429 @@ function getInventory(){
 
     echo "
       <tr>
-        <td>$count</td>
-        <td>$item</td>
+        <td>$c</td>
+        <td class='cap'>$item</td>
         <td>$count</td>
         <td>$price</td>
+        <td style='width:10%'><a href='?edit=$id'>edit</a></td>
+        <td style='width:10%'><a href='?delete=$id'>delete</a></td>
       </tr>
     ";
   }
 }
+
+/*
+--------------------------------------------
+ADD NEW ITEM
+--------------------------------------------
+*/
+function addNewItem(){
+
+  global $conn;
+  $errors = array();
+
+  if (isset($_POST['add-item'])) {
+
+    if ($_POST['item'] != '') {
+      $item = $_POST['item'];
+    }else {
+      $errors[] = "<p class='error'>item cannot be empty</p>";
+    }
+
+    if ($_POST['price'] == '') {
+      $errors[] = "<p class='error'>price cannot be empty</p>";
+    }else {
+      $price = $_POST['price'];
+    }
+
+    if ($_POST['count'] == '') {
+      $errors[] = "<p class='error'>count cannot be empty</p>";
+    }else {
+      $count = $_POST['count'];
+    }
+
+    if ($errors == []) {
+      #Inserting the user's data into our database
+      $sql = "INSERT INTO inventory (item, count, single_item_price)
+      VALUES ('$item', '$count', '$price')";
+
+      if ($conn->query($sql) === TRUE) {
+        echo "<p class='success'>Item added successfully</p>";
+        header('refresh:2; url=../inventory');
+      }else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+      }
+    }else {
+      foreach ($errors as $error) {
+        echo $error;
+      }
+    }
+
+  }
+}
+
+
+/*
+--------------------------------------------
+EDIT ITEM
+--------------------------------------------
+*/
+function editItem($id){
+
+  global $conn;
+  $errors = array();
+
+  if (isset($_POST['edit-item'])) {
+
+    if ($_POST['item'] != '') {
+      $item = $_POST['item'];
+    }else {
+      $errors[] = "<p class='error'>item cannot be empty</p>";
+    }
+
+    if ($_POST['price'] == '') {
+      $errors[] = "<p class='error'>price cannot be empty</p>";
+    }else {
+      $price = $_POST['price'];
+    }
+
+    if ($_POST['count'] == '') {
+      $errors[] = "<p class='error'>count cannot be empty</p>";
+    }else {
+      $count = $_POST['count'];
+    }
+
+    if ($errors == []) {
+      $sql = "UPDATE inventory SET `item` = '$item', `count` = '$count',  `single_item_price`='$price' WHERE item_id = $id";
+
+      if ($conn->query($sql) === TRUE) {
+        echo "<p class='success'>Item added successfully</p>";
+        header('refresh:2; url=../inventory');
+      }else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+      }
+    }else {
+      foreach ($errors as $error) {
+        echo $error;
+      }
+    }
+
+  }
+}
+
+/*
+--------------------------------------------
+ORDERS
+--------------------------------------------
+*/
+// ORDERS DISPLAY
+function displayOrders(){
+  global $conn;
+
+  $sql = "SELECT * FROM inventory ORDER BY item ASC";
+  $result = $conn->query($sql);
+
+  # get fields into variables
+  while($row = $result->fetch_assoc()){
+    $id = $row['item_id'];
+    $item = $row['item'];
+    $count = $row['count'];
+    $price = $row['single_item_price'];
+
+    echo "
+    <tr>
+      <td>$item</td>
+      <td><input type='checkbox' name='check$item' value='$item'></td>
+      <td><input  name='value$item' type='text' value='$count' placeholder='number of items'></td>
+    </tr>
+    ";
+  }
+}
+
+// MAKE ORDER
+function makeOrder(){
+
+  global $conn;
+  $errors = array();
+  $item_array = array();
+  $success = null;
+  $fail = null;
+
+  if (isset($_POST['make-order'])) {
+
+    # name
+    if ($_POST['name'] != '') {
+      $name = $_POST['name'];
+    }else {
+      $errors[] = "<p class='error'>name cannot be empty</p>";
+    }
+
+    # phone number
+    if ($_POST['phone'] == '') {
+      $errors[] = "<p class='error'>phone number cannot be empty</p>";
+    }else {
+      $phone = $_POST['phone'];
+    }
+
+    # items
+    $sql = "SELECT * FROM inventory";
+    $result = $conn->query($sql);
+
+    # get fields into variables
+    while($row = $result->fetch_assoc()){
+      $id = $row['item_id'];
+      $item = $row['item'];
+      $dbcount = $row['count'];
+      $price = $row['single_item_price'];
+
+      if (isset($_POST['check'.$item])) {
+        $item = $_POST['check'.$item];
+        $value = $_POST['value'.$item];
+
+        $new_count = $dbcount - $value;
+
+        if ($value > checkLimit($item)) {
+          $errors[] = "<p class='error'>$item count more than limit</p>";
+        }
+
+        if (checkLimit($item) == 0) {
+          $errors[] = "<p class='error'>$item count is zero</p>";
+        }
+
+
+        $item_array[]  = array('item' => $item, 'value' => $value, 'newcount' => $new_count);
+      }
+    }
+
+    if (empty($item_array)) {
+      $errors[] = "<p class='error'>you have not picked an item</p>";
+    }
+
+
+    # date
+    if ($_POST['date'] == '') {
+      $errors[] = "<p class='error'>date cannot be empty</p>";
+    }else {
+      $event_date = $_POST['date'];
+    }
+
+
+
+    if ($errors == []) {
+
+      $code = stringShuffle($divide = 4);
+
+      for ($i=0; $i < count($item_array); $i++) {
+        $item = $item_array[$i]['item'];
+        $count = $item_array[$i]['value'];
+        $new_count = $item_array[$i]['newcount'];
+
+        $sql = "INSERT INTO orders (code, item, count, name, number, event_date)
+        VALUES ('$code', '$item', '$count', '$name', '$phone', '$event_date')";
+
+        if ($conn->query($sql) === TRUE) {
+          $sql = "UPDATE inventory SET `count` = '$new_count' WHERE item = '$item'";
+          if ($conn->query($sql) === TRUE) {
+            $success = true;
+          }else {
+            $success = null;
+          }
+        }else {
+          $success = null;
+        }
+      }
+
+      if ($success == true) {
+        echo "<p class='success'>Order made successfully</p>";
+        header('refresh:2; url=../orders');
+      }else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+      }
+
+
+    }else {
+      foreach ($errors as $error) {
+        echo $error;
+      }
+    }
+
+  }
+}
+
+// FUNCTION GET ORDERS
+function getOrders(){
+  global $conn;
+  $code_array = array();
+  $total = null;
+
+  $sql = "SELECT * FROM orders GROUP BY code ORDER BY order_id DESC";
+  $result = $conn->query($sql);
+
+  # get fields into variables
+  while($row = $result->fetch_assoc()){
+    $code_array[] = $row['code'];
+  }
+
+  foreach ($code_array as $code) {
+    echo "<div class='col-sm-10 order'>
+    <H4><b>ORDER CODE: </b> ".strtoupper($code)."</h4>
+    <table border='1'>
+    <tr>
+    <td>#</td>
+    <td>item</td>
+    <td>count</td>
+    <td>price (Ksh)</td>
+    </tr>
+    ";
+    $sql = "SELECT * FROM orders WHERE code = '$code'";
+    $result = $conn->query($sql);
+
+    # get fields into variables
+    $c = 0;
+
+    while($row = $result->fetch_assoc()){
+      $c += 1;
+      $id = $row['order_id'];
+      $code = $row['code'];
+      $item = $row['item'];
+      $count = $row['count'];
+      $name = $row['name'];
+      $number = $row['number'];
+      $event_date = $row['event_date'];
+      $date = date_format(new dateTime($row['date_posted']), "jS M Y H:i:s");
+      $status = $row['status'];
+
+      $price = $count * getItemPrice($item);
+
+      $total += $price;
+
+      echo "
+        <tr>
+        <td>$c</td>
+        <td>$item</td>
+        <td>$count</td>
+        <td>$price</td>
+        </tr>
+      ";
+    }
+    echo "
+    <tr>
+    <td><b>#</b></td>
+    <td><b>Total Charge</b></td>
+    <td><b>-</b></td>
+    <td><b>$total</b></td>
+    </tr>
+    </table>
+    <br><br>
+    <p><b>ORDER BY: </b> $name - $number</p>
+    <p><b>EVENT DATE: </b>$event_date</p>
+    <p><b>date posted: </b> $date</p>
+
+    <form class='ui-form' method='post' action=''>
+    <input type='hidden' name='returncode' value='$code'>
+    ".getButton($status)."
+    </form>
+    </div>";
+
+
+  }
+}
+
+# function to get Item price
+function getItemPrice($item){
+  global $conn;
+
+  $sql = "SELECT * FROM inventory WHERE item = '$item'";
+  $result = $conn->query($sql);
+
+  # get fields into variables
+  while($row = $result->fetch_assoc()){
+    $price = $row['single_item_price'];
+  }
+
+  return $price;
+}
+
+
+# check limit function
+function checkLimit($item){
+  global $conn;
+
+  $sql = "SELECT * FROM inventory WHERE item = '$item'";
+  $result = $conn->query($sql);
+
+  # get fields into variables
+  while($row = $result->fetch_assoc()){
+    $count = $row['count'];
+  }
+
+  return $count;
+}
+
+# function to get return button
+function getButton($status){
+  if ($status == 0) {
+    $value = "<input type='submit' name='make-return' value='make return'>";
+  }else {
+    $value = "<input type='button' disabled value='returned'>";
+  }
+
+  return $value;
+}
+
+# make return
+function makeReturn(){
+  global $conn;
+
+  if (isset($_POST['make-return'])) {
+
+    $returncode = $_POST['returncode'];
+
+    $sql = "SELECT * FROM orders WHERE code = '$returncode'";
+    $result = $conn->query($sql);
+
+    # get fields into variables
+    while($row = $result->fetch_assoc()){
+      $item = $row['item'];
+      $ordercount = $row['count'];
+
+      $new_count = checkLimit($item) + $ordercount;
+
+      $sql = "UPDATE inventory SET `count` = '$new_count' WHERE item = '$item'";
+      if ($conn->query($sql) === TRUE) {
+        $sql = "UPDATE orders SET `status` = 1 WHERE code = '$returncode'";
+        if ($conn->query($sql) === TRUE) {
+          header('refresh:2; url=../orders');
+        }else {
+          echo "Error: " . $sql . "<br>" . $conn->error;
+        }
+      }else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+      }
+    }
+  }
+}
+
+// call return function
+makeReturn();
+
+function deleteItem(){
+
+  global $conn;
+
+  if (isset($_GET['delete']) && $_GET['delete'] != '') {
+
+    $id = $_GET['delete'];
+
+    $sql = "DELETE FROM inventory WHERE item_id = $id";
+    if ($conn->query($sql) === TRUE) {
+      echo "<p class='success'>Deletion successful</p>";
+      header('refresh:2; url=../invoice');
+    }else {
+      echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+  }
+}
+
+
  ?>
