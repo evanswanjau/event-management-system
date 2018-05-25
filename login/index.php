@@ -4,11 +4,11 @@
   <head>
     <meta charset="utf-8">
     <title>Login</title>
-    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" type="text/css" href="../css/main.css">
     <link rel="stylesheet" type="text/css" href="../css/bootstrap.css">
     <style media="screen">
       .container-form{
-        padding:5%!important; 
+        padding:5%!important;
       }
     </style>
   </head>
