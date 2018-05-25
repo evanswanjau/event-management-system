@@ -30,7 +30,7 @@ function stringShuffle($divide = 4){
   return $code;
 }
 
-#getting count
+# getting Attending count
 function getAttendingCount($code){
   global $conn;
 
@@ -41,7 +41,7 @@ function getAttendingCount($code){
   return $row_count;
 }
 
-#function that adds s to the end.
+# function that adds s to the end.
 function addS($time){
   if ($time != 1) {
     $s = 's';
@@ -52,7 +52,7 @@ function addS($time){
   return $s;
 }
 
-#difference in time
+# function to get difference in time
 function timeSpan($date){
 
   date_default_timezone_set('Africa/Nairobi');
@@ -78,6 +78,18 @@ function timeSpan($date){
         $time = $months." month".addS($months)." to go";
 
     return $time;
+}
+
+
+# link to profile
+function profileLink($link=''){
+  if (isset($_SESSION['user'])) {
+    echo '<a href="'.$link.'profile"><li>profile</li></a>';
+  }elseif (isset($_SESSION['admin'])) {
+    echo '<a href="'.$link.'admin"><li>profile</li></a>';
+  }elseif (isset($_SESSION['superadmin'])) {
+    echo '<a href="'.$link.'superadmin"><li>profile</li></a>';
+  }
 }
 
 /*
@@ -315,31 +327,48 @@ function loginUser(){
     }
 
     if($errors == []){
+
       $query = "SELECT username, password FROM users WHERE username = '$username'";
       $result = $conn->query($query);
 
       if($result->num_rows == 1){
         while($row = $result->fetch_assoc()) {
-              $username = $row['username'];
-              $hash = $row['password'];
-            }
+          $username = $row['username'];
+          $hash = $row['password'];
+        }
 
-            if (password_verify($password, $hash)) {
+        if ($password == $hash) {
+          $_SESSION['user'] = $username;
+          header('Location: ../profile');
+        }else {
+         echo '<p class="error">Invalid login details</p>';
+       }
+     }else {
+       $query = "SELECT username, password FROM administrators WHERE username = '$username'";
+       $result = $conn->query($query);
 
-              $_SESSION['user'] = $username;
+       if($result->num_rows == 1){
+         while($row = $result->fetch_assoc()) {
+               $username = $row['username'];
+               $hash = $row['password'];
+             }
 
-              if ($username == 'admin') {
-                header('Location: ../admin');
-              }else {
-                header('Location: ../profile');
-              }
+             if ($password == $hash) {
 
-            } else {
-              echo '<p class="error">Invalid login details</p>';
-            }
-      }else if($result->num_rows < 1){
-        echo '<p class="error">That username does not exist</p>';
-      }
+               if ($username == 'superadmin') {
+                 header('Location: ../superadmin');
+                 $_SESSION['superadmin'] = $username;
+               }else {
+                 header('Location: ../admin');
+                 $_SESSION['admin'] = $username;
+               }
+             } else {
+               echo '<p class="error">Invalid login details</p>';
+             }
+       }else if($result->num_rows < 1){
+         echo '<p class="error">That username does not exist</p>';
+       }
+     }
     }else{
       foreach ($errors as $error) {
         echo $error;
@@ -388,7 +417,7 @@ function loginUser(){
           }
 
           if ($password == $password2) {
-            $password = password_hash($password, PASSWORD_BCRYPT);
+            $password = $password;
           }else {
             $errors[] = "<p class='error'>Passwords are not similar</p>";
           }
@@ -474,6 +503,8 @@ function getTicket($code){
   }
 }
 
+
+# get user tickets
 function myTickets($code, $username, $serial_code){
   global $conn;
 
@@ -684,17 +715,13 @@ profile security and logout function
 function userSecurity($path=''){
   if (!isset($_SESSION['user'])) {
     header('location: '.$path.'login');
-  }else if($_SESSION['user'] == 'admin'){
-    header('location: '.$path.'admin');
   }
 }
 
 # admin security
 function adminSecurity($path=''){
-  if (!isset($_SESSION['user'])) {
+  if (!isset($_SESSION['admin'])) {
     header('location: '.$path.'login');
-  }else if($_SESSION['user'] != 'admin'){
-    header('location: '.$path.'profile');
   }
 }
 
@@ -1243,6 +1270,131 @@ function deleteItem(){
     }
   }
 }
+
+
+/*
+--------------------------------------------
+SUPER ADMINISTRATOR FUNCTIONS
+--------------------------------------------
+*/
+
+# get Administrators
+function getAdministrators(){
+  global $conn;
+  $count = 0;
+
+  $sql = "SELECT * FROM administrators";
+  $result = $conn->query($sql);
+
+  # get fields into variables
+  while($row = $result->fetch_assoc()){
+    $count += 1;
+    $id = $row['admin_id'];
+    $name = $row['name'];
+    $username = $row['username'];
+
+    echo "
+    <tr>
+      <td>$count</td>
+      <td>$name</td>
+      <td>$username</td>
+      <td><a href='?delete-admin=$id'>delete</a></td>
+    </tr>";
+  }
+}
+
+
+# add staff account
+function addStaffAccount(){
+
+  global $conn;
+  $errors = array();
+
+  if (isset($_POST['add-admin'])) {
+    # full name
+    if($_POST['name'] != ''){
+      $name = clean_input($_POST['name']);
+    }else {
+      $errors[] = "<p class='error'>Full name is required</p>";
+    }
+
+    # username
+    if($_POST['username'] != ''){
+      $username = clean_input($_POST['username']);
+    }else {
+      $errors[] = "<p class='error'>username is required</p>";
+    }
+
+    #password
+    if($_POST['password'] != ''){
+      $password = clean_input($_POST['password']);
+
+      if (strlen($password) < 6) {
+        $errors[] = "<p class='error'>password cannot be less than 6 characters</p>";
+      }else {
+
+        # confirm password
+        if($_POST['password2'] != ''){
+          $password2 = clean_input($_POST['password2']);
+        }else {
+          $errors[] = "<p class='error'>Please confirm your password</p>";
+        }
+
+        if ($password == $password2) {
+          $password = $password;
+        }else {
+          $errors[] = "<p class='error'>Passwords are not similar</p>";
+        }
+
+      }
+    }else {
+      $errors[] = "<p class='error'>password is required</p>";
+    }
+
+    if ($errors == []) {
+      $sql = "INSERT INTO administrators (name, username, password)
+      VALUES ('$name', '$username', '$password')";
+
+      if ($conn->query($sql) === TRUE) {
+        echo "<p class='success'>Staff added successfully</p>";
+        header('refresh:2; url=../superadmin');
+      }else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+      }
+    }else {
+      foreach ($errors as $error) {
+        echo $error;
+      }
+    }
+  }
+}
+
+// DELETE ADMINISTRATOR
+function deleteAdmin(){
+
+  global $conn;
+
+  if (isset($_GET['delete-admin']) && $_GET['delete-admin'] != '') {
+
+    $id = $_GET['delete-admin'];
+
+    $sql = "DELETE FROM administrators WHERE admin_id = $id";
+    if ($conn->query($sql) === TRUE) {
+      echo "<p class='success'>Deletion successful</p>";
+      header('refresh:2; url=../superadmin');
+    }else {
+      echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+  }
+}
+
+# super admin security
+function superAdminSecurity($path=''){
+  if (!isset($_SESSION['superadmin'])) {
+    header('location: '.$path.'login');
+  }
+}
+
 
 
  ?>

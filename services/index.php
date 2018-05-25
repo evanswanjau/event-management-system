@@ -39,11 +39,7 @@
           </ul>
         </li></a>
         <a href="../contacts"><li>contact us</li></a>
-        <?php
-          if (isset($_SESSION['user'])) {
-            echo '<a href="../profile"><li>profile</li></a>';
-          }
-         ?>
+        <?php profileLink('../'); ?>
       </ul>
     </div>
 

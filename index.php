@@ -5,16 +5,7 @@
     <meta charset="utf-8">
     <title>EMS</title>
     <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.css">
-    <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css">
-    <script type="text/javascript" src="js/bootstrap.js"></script>
-    <script type="text/javascript" src="js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="js/jquery.js"></script>
-    <script type="text/javascript" src="js/script.js"></script>
-    <link rel="stylesheet" href="css/jquery-ui.min.css">
-    <script src="js/jquery-ui.min.js"></script>
   </head>
   <body>
 
@@ -33,11 +24,7 @@
           </ul>
         </li></a>
         <a href="contacts"><li>contact us</li></a>
-        <?php
-          if (isset($_SESSION['user'])) {
-            echo '<a href="profile"><li>profile</li></a>';
-          }
-         ?>
+        <?php profileLink(); ?>
       </ul>
     </div>
 
