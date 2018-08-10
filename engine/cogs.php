@@ -259,6 +259,12 @@ function getEvents(){
       $entry_fee = $row['entryfee'];
       $venue = $row['venue'];
 
+      if (isset($_SESSION['user'])) {
+        $value = 'profile/ticket?ticket_number='.$code.'';
+      }else {
+        $value = 'get-ticket/?ticket_number='.$code.'';
+      }
+
       echo "
       <div class='event'>
         <a href='?link=$event' class='kando'>#$event</a>
@@ -268,7 +274,8 @@ function getEvents(){
         <p><b>Venue: </b>$venue</p>
         <p><b>Date: </b>$event_date</p>
         <p><b>Attending: </b>".getAttendingCount($code)."</p>
-        <br><a href='profile/ticket?ticket_number=$code'>get ticket</a>  <span class='kando' style='background-color:#34ca66;'>".timeSpan($event_date)."</span><br><br>
+        <br><a href='$value'>get ticket</a><span class='kando' style='background-color:#34ca66;'>".timeSpan($event_date)."</span><br><br>
+        <div class='fb-share-button' data-href='localhost/event-management-system' data-layout='button_count' data-size='small' data-mobile-iframe='true'><a class='fb-xfbml-parse-ignore' target='_blank' style='background-color:#3188B9;border:2px solid #3188B9;' href='https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fdevelopers.facebook.com%2Fdocs%2Fplugins%2F&amp;src=sdkpreparse'>notify a friend</a></div>
       </div>";
     }
   }else {
@@ -285,6 +292,12 @@ function getEvents(){
       $entry_fee = $row['entryfee'];
       $venue = $row['venue'];
 
+      if (isset($_SESSION['user'])) {
+        $value = 'profile/ticket?ticket_number='.$code.'';
+      }else {
+        $value = 'get-ticket/?ticket_number='.$code.'';
+      }
+
       echo "
       <div class='event'>
         <a href='?link=$event' class='kando'>#$event</a>
@@ -294,7 +307,10 @@ function getEvents(){
         <p><b>Venue: </b>$venue</p>
         <p><b>Date: </b>$event_date</p>
         <p><b>Attending:</b>".getAttendingCount($code)."</p>
-        <br><a href='profile/ticket?ticket_number=$code'>get ticket</a>  <span class='kando' style='background-color:#34ca66;'>".timeSpan($event_date)."</span><br><br>
+        <br><a href='$value'>get ticket</a>  <span class='kando' style='background-color:#34ca66;'>".timeSpan($event_date)."</span><br><br>
+        <br>
+        <div class='fb-share-button' data-href='localhost/event-management-system' data-layout='button_count' data-size='small' data-mobile-iframe='true'><a class='fb-xfbml-parse-ignore' target='_blank' style='background-color:#3188B9;border:2px solid #3188B9;' href='https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fdevelopers.facebook.com%2Fdocs%2Fplugins%2F&amp;src=sdkpreparse'>notify a friend</a></div>
+        <br>
       </div>";
     }
   }
@@ -470,7 +486,17 @@ generate ticket
 function getTicket($code){
   global $conn;
 
-  $username = $_SESSION['user'];
+
+  if (isset($_SESSION['user'])) {
+    $username = $_SESSION['user'];
+    $value = "
+    <form class='ui-form' action='' method='post'>
+      <input type='submit' name='confirm-ticket' value='generate ticket'>
+    </form>";
+  }else {
+    $username = null;
+    $value = null;
+  }
 
   $serial_code = strtoupper(stringShuffle() . $username);
 
@@ -496,11 +522,36 @@ function getTicket($code){
       <p><b>Venue: </b>$venue</p>
       <p><b>Date: </b>$event_date  <span style='background-color:#34ca66;color:#fff; border-radius:3px; paddding:3%!important;'>".timeSpan($event_date)."</span></p>
       <p><b>Attending:</b>".getAttendingCount($code)."</p>
-      <form class='ui-form' action='' method='post'>
-        <input type='submit' name='confirm-ticket' value='generate ticket'>
-      </form>
+      $value
     </div>";
+
+
   }
+
+  ob_clean();
+
+        if (isset($_SESSION['user'])) {
+          require('../../fpdf/fpdf.php');
+        }else {
+          require('../fpdf/fpdf.php');
+        }
+
+        $pdf = new FPDF();
+
+        $pdf->AddPage();
+        $pdf->SetFont('Arial','B',16);
+        $pdf->Cell(200,10,'----------------------------------',0,2,'C');
+        $pdf->Cell(200,10,$name,0,2,'C');
+        $pdf->Cell(200,10,'CATEGORY: '.$event,0,2,'C');
+        $pdf->Cell(200,10,'PRICE: ' .$entry_fee,0,2,'C');
+        $pdf->Cell(200,10,'DATE: '.$event_date,0,2,'C');
+        $pdf->Cell(200,10,'CODE: '.$code,0,2,'C');
+        $pdf->Cell(200,10,'VENUE: '.$venue,0,2,'C');
+        $pdf->Cell(200,10,'--------------------------------',0,2,'C');
+        $pdf->Output();
+
+        ob_end_flush();
+
 }
 
 
@@ -1100,7 +1151,6 @@ function makeOrder(){
 function getOrders(){
   global $conn;
   $code_array = array();
-  $total = null;
 
   $sql = "SELECT * FROM orders GROUP BY code ORDER BY order_id DESC";
   $result = $conn->query($sql);
@@ -1111,6 +1161,7 @@ function getOrders(){
   }
 
   foreach ($code_array as $code) {
+    $total = null;
     echo "<div class='col-sm-10 order'>
     <H4><b>ORDER CODE: </b> ".strtoupper($code)."</h4>
     <table border='1'>
@@ -1152,12 +1203,57 @@ function getOrders(){
         </tr>
       ";
     }
+
+
     echo "
     <tr>
     <td><b>#</b></td>
     <td><b>Total Charge</b></td>
     <td><b>-</b></td>
     <td><b>$total</b></td>
+    </tr>";
+
+    $sql = "SELECT * FROM payments WHERE code = '$code'";
+    $result = $conn->query($sql);
+    $p = 0;
+    $totalpaid = null;
+
+    while($row = $result->fetch_assoc()){
+      $p += 1;
+      $amount = $row['amount'];
+      $totalpaid += $amount;
+      echo "
+      <tr style='background-color:#34ca66;'>
+      <td>$p</td>
+      <td>Payment $p</td>
+      <td>-</td>
+      <td>$amount</td>
+      </tr>";
+
+    }
+
+    $balance = $total - $totalpaid;
+
+    if ($balance <= 0) {
+      $balance = '<b>payment complete</b>';
+    }
+
+    echo "
+    <tr>
+
+    <td><b>#</b></td>
+    <td><b>Total Amount Paid</b></td>
+    <td><b>-</b></td>
+    <td><b>$totalpaid</b></td>
+
+    </tr>
+    <tr>
+
+    <td><b>#</b></td>
+    <td><b>Balance</b></td>
+    <td><b>-</b></td>
+    <td><b>$balance</b></td>
+
     </tr>
     </table>
     <br><br>
@@ -1395,6 +1491,211 @@ function superAdminSecurity($path=''){
   }
 }
 
+
+/*
+--------------------------------------------
+GET ORDER SEARCH
+--------------------------------------------
+*/
+
+function getOrderSearch($code){
+  global $conn;
+  $code_array = array();
+  $total = null;
+
+  $code = strtolower($code);
+
+  $sql = "SELECT * FROM orders WHERE code = '$code' GROUP BY code";
+  $result = $conn->query($sql);
+
+  # get fields into variables
+  if($result->num_rows > 0){
+    while($row = $result->fetch_assoc()){
+      $code_array[] = $row['code'];
+    }
+  }else {
+    echo "
+    <div class='empty-data' style='margin-top:-5%;'>
+      <h2>That order does not exist</h2><br><br>
+    </div>";
+  }
+
+  foreach ($code_array as $code) {
+    echo "<div class='col-sm-10 order'>";
+    MakePayment();
+    echo "<H4><b>ORDER CODE: </b> ".strtoupper($code)."</h4>
+    <table border='1'>
+    <tr>
+    <td>#</td>
+    <td>item</td>
+    <td>count</td>
+    <td>price (Ksh)</td>
+    </tr>
+    ";
+    $sql = "SELECT * FROM orders WHERE code = '$code'";
+    $result = $conn->query($sql);
+
+    # get fields into variables
+    $c = 0;
+
+    while($row = $result->fetch_assoc()){
+      $c += 1;
+      $id = $row['order_id'];
+      $code = $row['code'];
+      $item = $row['item'];
+      $count = $row['count'];
+      $name = $row['name'];
+      $number = $row['number'];
+      $event_date = $row['event_date'];
+      $date = date_format(new dateTime($row['date_posted']), "jS M Y H:i:s");
+      $status = $row['status'];
+
+      $price = $count * getItemPrice($item);
+
+      $total += $price;
+
+      echo "
+        <tr>
+        <td>$c</td>
+        <td>$item</td>
+        <td>$count</td>
+        <td>$price</td>
+        </tr>
+      ";
+    }
+
+
+    echo "
+    <tr>
+    <td><b>#</b></td>
+    <td><b>Total Charge</b></td>
+    <td><b>-</b></td>
+    <td><b>$total</b></td>
+    </tr>";
+
+    $sql = "SELECT * FROM payments WHERE code = '$code'";
+    $result = $conn->query($sql);
+    $p = 0;
+    $totalpaid = null;
+
+    while($row = $result->fetch_assoc()){
+      $p += 1;
+      $amount = $row['amount'];
+      $totalpaid += $amount;
+      echo "
+      <tr style='background-color:#34ca66;'>
+      <td>$p</td>
+      <td>Payment $p</td>
+      <td>-</td>
+      <td>$amount</td>
+      </tr>";
+
+    }
+
+    $balance = $total - $totalpaid;
+
+    if ($balance <= 0) {
+      $balance = '<b>payment complete</b>';
+      $returnvalue = null;
+    }else {
+      $returnvalue = "<form class='ui-form' method='post' action=''>
+      <input type='hidden' name='code' value='$code'>
+      <input type='text' style='border:1px solid #000;' name='card' placeholder='Enter credit card numer'><br><br>
+      <input type='text' style='border:1px solid #000;' name='amount' value='$balance'><br><br>
+      <input type='submit' name='pay' value='pay'><br><br>
+      </form>";
+    }
+
+    echo "
+    <tr>
+
+    <td><b>#</b></td>
+    <td><b>Total Amount Paid</b></td>
+    <td><b>-</b></td>
+    <td><b>$totalpaid</b></td>
+
+    </tr>
+    <tr>
+
+    <td><b>#</b></td>
+    <td><b>Balance</b></td>
+    <td><b>-</b></td>
+    <td><b>$balance</b></td>
+
+    </tr>
+    </table>
+    <br><br>
+    <p><b>ORDER BY: </b> $name - $number</p>
+    <p><b>EVENT DATE: </b>$event_date</p>
+    <p><b>date posted: </b> $date</p>
+    $returnvalue
+    </div>";
+
+
+  }
+}
+
+function MakePayment(){
+  global $conn;
+  $errors = array();
+
+  if (isset($_POST['pay'])) {
+    # full name
+    if($_POST['card'] != ''){
+      $cardno = clean_input($_POST['card']);
+    }else {
+      $errors[] = "<p class='error'>Credit card details are required</p>";
+    }
+
+    if($_POST['amount'] != ''){
+      $amount = clean_input($_POST['amount']);
+    }else {
+      $errors[] = "<p class='error'>amount is required</p>";
+    }
+
+    $code = clean_input($_POST['code']);
+
+
+    if ($errors == []) {
+      $sql = "INSERT INTO payments (code, cardno, amount)
+      VALUES ('$code', '$cardno', '$amount')";
+
+      if ($conn->query($sql) === TRUE) {
+        echo "<p class='success'>payment made successfully</p>";
+        header('refresh:2; url=../orders/?order-code='.$code.'');
+      }else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+      }
+    }else {
+      foreach ($errors as $error) {
+        echo $error;
+      }
+    }
+  }
+}
+
+
+function getMarquee(){
+
+  global $conn;
+
+  $sql = "SELECT * FROM events ORDER BY eventdate ASC";
+  $result = $conn->query($sql);
+
+  # get fields into variables
+  while($row = $result->fetch_assoc()){
+    $code = $row['code'];
+    $name = $row['name'];
+    $description = $row['description'];
+    $event = $row['event'];
+    $event_date = $row['eventdate'];
+    $entry_fee = $row['entryfee'];
+    $venue = $row['venue'];
+
+    echo $name .' '. timeSpan($event_date). ' | ';
+  }
+
+}
 
 
  ?>

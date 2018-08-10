@@ -15,7 +15,7 @@
         <a href="../about"><li>about</li></a>
         <a href="../services"><li>services</li></a>
         <a href="../"><li class="dropdown">events
-          <ul>
+          <ul style="margin-left:-70%;">
             <a href="../?link=artsnculture"><li>arts and culture</li></a>
             <a href="../?link=exhibition"><li>exhibition</li></a>
             <a href="../?link=festivals"><li>festivals</li></a>
@@ -24,6 +24,15 @@
           </ul>
         </li></a>
         <a href="../contacts"><li>contacts</li></a>
+        <a href="index.php"><li class="dropdown">SUPPLIERS
+          <ul>
+            <a href="https://www.pigiame.co.ke/chairs-tables-for-hire/tents-tables-and-chairs-for-hire-1108815?utm_source=the-star.co.ke" target="_blank"><li>tents</li></a>
+            <a href="https://www.pigiame.co.ke/chairs-tables-for-hire/tents-tables-and-chairs-for-hire-1108815?utm_source=the-star.co.ke" target="_blank"><li>chairs</li></a>
+            <a href="https://www.pigiame.co.ke/djs-sound-systems-for-hire" target="_blank"><li>sound systems</li></a>
+            <a href="http://www.limecatering.co.ke/for-hire.html" target="_blank"><li>catering</li></a>
+          </ul>
+        </li></a>
+        <a href="../orders"><li>orders</li></a>
         <?php profileLink('../'); ?>
       </ul>
     </div>

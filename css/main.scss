@@ -48,7 +48,7 @@ TOP MENU
   ul{
     visibility: hidden;
     position: absolute;
-    margin-left:-80%;
+    margin-left:-50%;
     margin-top:8%;
   }
 
@@ -477,4 +477,20 @@ tr:nth-child(even){
   p{
     text-transform: capitalize;
   }
+}
+
+
+// slider
+.slider{
+  position:absolute;
+  bottom:0;
+  right:0;
+  margin-right:.9%;
+  z-index: 4;
+  padding:.7%;
+  width:40.1%;
+  background-color:#000;
+  color:#fff;
+  border-top:2px solid #fff;
+  font-family:$font; 
 }
